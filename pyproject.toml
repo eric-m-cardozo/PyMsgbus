@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pymsgbus"
-version = "0.4.2"
+version = "0.4.3"
 description = "\"A python framework for event driven systems\""
 authors = ["entropy-flux <eric.hermosis@gmail.com>"]
 license = "Apache-2.0"
@@ -13,6 +13,13 @@ python = "^3.12"
 [tool.poetry.group.tests.dependencies]
 pytest = "^8.4.1"
 pytest-asyncio = "^1.1.0"
+
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^9.6.17"
+pymdown-extensions = "^10.16.1"
+mkdocstrings = "^0.30.0"
+mkdocstrings-python = "^1.17.0"
 
 [build-system]
 requires = ["poetry-core"]
