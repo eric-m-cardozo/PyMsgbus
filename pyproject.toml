@@ -1,28 +1,19 @@
-[project]
+[tool.poetry]
 name = "pymsgbus"
-version = "0.4.1"
-description = "An python framework for event driven systems"
-authors = [
-    {name = "Eric Cardozo",email = "eric.m.cardozo@gmail.com"}
-]
-license = {text = "Apache-2.0"}
+version = "0.4.2"
+description = "\"A python framework for event driven systems\""
+authors = ["entropy-flux <eric.hermosis@gmail.com>"]
+license = "Apache-2.0"
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-]
 
+[tool.poetry.dependencies]
+python = "^3.12"
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.tests.dependencies]
-pytest-asyncio = "^1.0.0"
+pytest = "^8.4.1"
+pytest-asyncio = "^1.1.0"
 
-
-[tool.poetry.group.docs.dependencies]
-mkdocs-material = "^9.6.14"
-mkdocstrings = {extras = ["python"], version = "^0.29.1"}
-mkdocs = "^1.6.1"
-pygments = "^2.19.1"
-
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
