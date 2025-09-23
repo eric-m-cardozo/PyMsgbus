@@ -13,9 +13,10 @@ from asyncio import run, to_thread
 from contextlib import ExitStack, AsyncExitStack
 from contextlib import contextmanager, asynccontextmanager
 from functools import wraps
-from typing import Generator, AsyncGenerator, Generic, TypeVar
+from typing import Generator, AsyncGenerator, Generic, TypeVar, Annotated, get_origin, get_args
 from collections.abc import Callable
 from inspect import BoundArguments
+from inspect import Parameter
 from inspect import signature, iscoroutinefunction, isasyncgenfunction
 
 class Provider:
@@ -56,7 +57,7 @@ class Dependency(Generic[T]):
         self.callable: Callable[..., T] = callable
 
 
-def Depends(callable: Callable) -> Dependency: 
+def Depends(callable: Callable):
     """Creates a Dependency instance wrapping the given callable.
 
     Args:
@@ -64,49 +65,17 @@ def Depends(callable: Callable) -> Dependency:
 
     Returns:
         Dependency: An instance of Dependency wrapping the callable.
-
-    Example:
-        provider = Provider()
-    
-        def get_session() -> Session:
-            ...    
-
-        @inject(provider)
-        def add_user(user: dict, session: Session = Depends(get_session)):
-            ...
-
-        @inject(provider)
-        def mypy_comp_add_user(user: dict, session: Dependency[Session] = Depends(get_session)):
-            ...
     """
     return Dependency(callable)
 
 
-def inject(provider: Provider) -> Callable:    
+def inject(provider: Provider):    
     """Decorator to inject dependencies into a function based on a provider.
 
     This decorator supports both synchronous and asynchronous functions.
     It resolves dependencies using the provided `provider`, manages
     the context with an exit stack, and calls the original function
     with the injected arguments.
-
-    Args:
-        provider (Provider): An instance responsible for providing dependencies.
-
-    Returns:
-        Callable: A decorator that wraps the target function, injecting dependencies.
-
-    Examples:
-        ```python
-        provider = Provider()
-
-        def get_session() -> Session:
-            ...
-        
-        @inject(provider)
-        def add_user(user: dict, session: Session = Depends(get_session)):
-            ...
-        ```
     """
     def decorator(function: Callable):
         if iscoroutinefunction(function) or isasyncgenfunction(function):
@@ -154,8 +123,21 @@ async def _async_managed_dependency(generator: AsyncGenerator):
             if "cannot reuse already awaited" not in str(error):
                 raise
 
+
 def _get_overridden_callable(callable: Callable, provider: Provider) -> Callable:
     return provider.dependency_overrides.get(callable, callable)
+
+
+def _get_dependency_from_parameter(parameter: Parameter, provider: Provider): 
+    if isinstance(parameter.default, Dependency):
+        return _get_overridden_callable(parameter.default.callable, provider)
+ 
+    if get_origin(parameter.annotation) is Annotated:
+        for meta in get_args(parameter.annotation)[1:]:
+            if isinstance(meta, Dependency):
+                return _get_overridden_callable(meta.callable, provider)
+
+    return None
 
 
 def _resolve_sync_dependency(dependency: Callable, provider: Provider, exit_stack: ExitStack):
@@ -177,10 +159,12 @@ def sync_resolve(function: Callable, provider: Provider, *args, **kwargs):
     exit_stack = ExitStack()
 
     for name, parameter in parameters.items():
-        if name in bounded.arguments or not isinstance(parameter.default, Dependency):
+        if name in bounded.arguments:
             continue
 
-        dependency = _get_overridden_callable(parameter.default.callable, provider)
+        dependency = _get_dependency_from_parameter(parameter, provider)
+        if dependency is None:
+            continue
 
         if iscoroutinefunction(dependency) or isasyncgenfunction(dependency):
             bounded.arguments[name] = _handle_async_dependency_sync(dependency, provider)
@@ -227,10 +211,12 @@ async def async_resolve(function: Callable, provider: Provider, *args, **kwargs)
     exit_stack = AsyncExitStack()
 
     for name, parameter in parameters.items():
-        if name in bounded.arguments or not isinstance(parameter.default, Dependency):
+        if name in bounded.arguments:
             continue
 
-        dependency = _get_overridden_callable(parameter.default.callable, provider)
+        dependency = _get_dependency_from_parameter(parameter, provider)
+        if dependency is None:
+            continue
 
         if iscoroutinefunction(dependency) or isasyncgenfunction(dependency):
             await _resolve_async_bound_dependency(dependency, provider, name, bounded, exit_stack)
