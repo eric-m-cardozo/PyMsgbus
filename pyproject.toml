@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pymsgbus"
-version = "0.4.3"
+version = "0.4.4"
 description = "\"A python framework for event driven systems\""
 authors = ["entropy-flux <eric.hermosis@gmail.com>"]
 license = "Apache-2.0"
