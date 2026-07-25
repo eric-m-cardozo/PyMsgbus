@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pymsgbus"
-version = "0.4.7"
+version = "0.4.8"
 description = "A python framework for event driven systems"
 authors = ["Eric M. Cardozo (Eric Hermosis) <eric.m.cardozo@gmail.com>"]
 license = "Apache-2.0"

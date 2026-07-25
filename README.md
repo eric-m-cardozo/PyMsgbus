@@ -4,6 +4,8 @@
 
 pymsgbus is a lightweight, extensible Python message bus framework designed to simplify event-driven and message-driven architectures using **services, producers, consumers, publishers, and subscribers** with dependency injection support. It offers synchronous and asynchronous support for handling messages/events with automatic dependency resolution.
 
+You can find the full documentation here: [eric-m-cardozo.github.io/PyMsgbus/](eric-m-cardozo.github.io/PyMsgbus/)
+
 ---
 
 ## Features
